@@ -1,0 +1,39 @@
+{% extends "courses/base.html" %}
+
+{% block title %}Проверка работы — Платформа курсов{% endblock %}
+
+{% block content %}
+    <a
+        class="back-link"
+        href="{% url 'courses:assignment_submissions' submission.assignment_id %}"
+    >
+        Вернуться к ответам студентов
+    </a>
+
+    <section class="surface">
+        <h1>Проверка работы</h1>
+
+        <p>
+            Студент:
+            <strong>{{ submission.student.username }}</strong>
+        </p>
+
+        <h2>{{ submission.assignment.title }}</h2>
+        {{ submission.assignment.description|linebreaks }}
+
+        <h2>Ответ студента</h2>
+        {{ submission.answer|linebreaks }}
+
+        <h2>Оценка и комментарий</h2>
+
+        <form class="platform-form" method="post">
+            {% csrf_token %}
+
+            {{ form.as_p }}
+
+            <button class="button" type="submit">
+                Сохранить результат
+            </button>
+        </form>
+    </section>
+{% endblock %}

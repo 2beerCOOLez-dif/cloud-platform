@@ -1,0 +1,29 @@
+{% extends "courses/base.html" %}
+
+{% block title %}Удаление урока — Платформа курсов{% endblock %}
+
+{% block content %}
+    <section class="surface">
+        <h1>Удаление урока</h1>
+
+        <p>
+            Удалить урок <strong>«{{ lesson.title }}»</strong>
+            из курса «{{ course.title }}»?
+        </p>
+
+        <p>Содержимое урока будет удалено без возможности отмены.</p>
+
+        <form method="post">
+            {% csrf_token %}
+
+            <div class="form-actions">
+                <button class="button button-danger" type="submit">
+                    Удалить урок
+                </button>
+                <a href="{% url 'courses:course_manage' course.pk %}">
+                    Отмена
+                </a>
+            </div>
+        </form>
+    </section>
+{% endblock %}

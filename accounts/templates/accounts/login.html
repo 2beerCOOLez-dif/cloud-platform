@@ -1,0 +1,24 @@
+{% extends "courses/base.html" %}
+
+{% block title %}Вход — Платформа курсов{% endblock %}
+
+{% block content %}
+    <section class="surface auth-panel">
+        <h1>Вход на платформу</h1>
+        <p class="muted">
+            Введите имя пользователя и пароль.
+        </p>
+
+        <form class="auth-form" method="post">
+            {% csrf_token %}
+
+            {{ form.as_p }}
+
+            {% if next %}
+                <input type="hidden" name="next" value="{{ next }}">
+            {% endif %}
+
+            <button class="button" type="submit">Войти</button>
+        </form>
+    </section>
+{% endblock %}

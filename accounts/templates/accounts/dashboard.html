@@ -1,0 +1,90 @@
+{% extends "courses/base.html" %}
+
+{% block title %}Личный кабинет — Платформа курсов{% endblock %}
+
+{% block content %}
+    <div class="page-heading">
+        <p class="eyebrow">Личный кабинет</p>
+        <h1>
+            Здравствуйте,
+            {{ user.get_full_name|default:user.username }}!
+        </h1>
+
+        <p class="muted">
+            {% if user.is_superuser %}
+                Роль: администратор
+            {% else %}
+                Роль: {{ user.get_role_display }}
+            {% endif %}
+        </p>
+
+        {% if user.is_superuser %}
+            <a href="{% url 'admin:index' %}">
+                Открыть административную панель
+            </a>
+        {% endif %}
+    </div>
+
+    <h2>{{ section_title }}</h2>
+    {% if user.role == "teacher" %}
+    <p>
+        <a class="button" href="{% url 'courses:course_create' %}">
+            Создать курс
+        </a>
+    </p>
+    {% endif %}
+
+    <div class="course-grid">
+        {% for course in courses %}
+            <article class="card">
+                <h2>{{ course.title }}</h2>
+
+                <p>{{ course.description|truncatewords:25 }}</p>
+
+                <p class="muted">
+                    Преподаватель:
+                    {{ course.teacher.get_full_name|default:course.teacher.username }}
+                </p>
+                {% if user.role == "teacher" and course.teacher_id == user.pk %}
+                    <div class="course-actions">
+                        <a href="{% url 'courses:course_manage' course.pk %}">
+                            Управлять уроками
+                        </a>
+                        <a href="{% url 'courses:course_edit' course.pk %}">
+                            Редактировать
+                        </a>
+                        <a
+                            class="danger-link"
+                            href="{% url 'courses:course_delete' course.pk %}"
+                        >
+                            Удалить
+                        </a>
+                    </div>
+                {% endif %}
+                {% if course.is_published %}
+                    <a
+                        class="button"
+                        href="{% url 'courses:course_detail' course.pk %}"
+                    >
+                        Открыть курс
+                    </a>
+                {% else %}
+                    <p class="muted">Черновик — курс не опубликован.</p>
+                {% endif %}
+            </article>
+        {% empty %}
+            <div class="surface empty-state">
+                {% if user.is_superuser %}
+                    <p>На платформе пока нет курсов.</p>
+                {% elif user.role == "teacher" %}
+                    <p>За вами пока не закреплены курсы.</p>
+                {% else %}
+                    <p>Вы пока не записаны на опубликованные курсы.</p>
+                    <a href="{% url 'courses:course_list' %}">
+                        Перейти в каталог
+                    </a>
+                {% endif %}
+            </div>
+        {% endfor %}
+    </div>
+{% endblock %}

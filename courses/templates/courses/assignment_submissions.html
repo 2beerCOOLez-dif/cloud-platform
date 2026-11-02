@@ -1,0 +1,42 @@
+{% extends "courses/base.html" %}
+
+{% block title %}Ответы студентов — Платформа курсов{% endblock %}
+
+{% block content %}
+    <a
+        class="back-link"
+        href="{% url 'courses:course_manage' assignment.lesson.course_id %}"
+    >
+        Вернуться к материалам курса
+    </a>
+
+    <h1>Ответы студентов</h1>
+    <h2>{{ assignment.title }}</h2>
+
+    {% for submission in submissions %}
+        <article class="assignment-card">
+            <h3>
+                {{ submission.student.get_full_name|default:submission.student.username }}
+            </h3>
+
+            <p class="muted">
+                Отправлен: {{ submission.submitted_at|date:"d.m.Y H:i" }}
+            </p>
+
+            {% if submission.grade is not None %}
+                <p>Оценка: {{ submission.grade }} / 100</p>
+            {% else %}
+                <p>Ожидает проверки</p>
+            {% endif %}
+
+            <a
+                class="button"
+                href="{% url 'courses:submission_review' submission.pk %}"
+            >
+                Проверить работу
+            </a>
+        </article>
+    {% empty %}
+        <p class="surface">Студенты пока не отправили ответы.</p>
+    {% endfor %}
+{% endblock %}

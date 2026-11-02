@@ -1,0 +1,103 @@
+{% extends "courses/base.html" %}
+
+{% block title %}Материалы курса — {{ course.title }}{% endblock %}
+
+{% block content %}
+    <a class="back-link" href="{% url 'accounts:dashboard' %}">
+        Вернуться в личный кабинет
+    </a>
+
+    <section class="surface">
+        <p class="eyebrow">Кабинет преподавателя</p>
+        <h1>{{ course.title }}</h1>
+
+        <p class="muted">
+            {% if course.is_published %}
+                Курс опубликован.
+            {% else %}
+                Курс находится в черновиках.
+            {% endif %}
+        </p>
+
+        <div class="form-actions">
+            <a
+                class="button"
+                href="{% url 'courses:lesson_create' course.pk %}"
+            >
+                Добавить урок
+            </a>
+            <a href="{% url 'courses:course_edit' course.pk %}">
+                Настройки курса
+            </a>
+        </div>
+
+        <h2>Учебные материалы</h2>
+
+        {% for lesson in lessons %}
+            <article class="managed-lesson">
+                <p class="muted">Порядок: {{ lesson.order }}</p>
+                <h3>{{ lesson.title }}</h3>
+
+                <details>
+                    <summary>Просмотреть содержание</summary>
+                    <div class="lesson-content">
+                        {{ lesson.content|linebreaks }}
+                    </div>
+                </details>
+                <div class="assignment-list">
+                    <h4>Задания к уроку</h4>
+
+                    <p>
+                        <a href="{% url 'courses:assignment_create' lesson.pk %}">
+                            Добавить задание
+                        </a>
+                    </p>
+
+                    {% for assignment in lesson.assignments.all %}
+                        <section class="assignment-card">
+                            <h4>{{ assignment.title }}</h4>
+
+                            <div>
+                                {{ assignment.description|linebreaks }}
+                            </div>
+
+                            <div class="course-actions">
+                                <a href="{% url 'courses:assignment_edit' assignment.pk %}">
+                                    Редактировать задание
+                                </a>
+                                <a href="{% url 'courses:assignment_submissions' assignment.pk %}">
+                                    Ответы студентов
+                                </a>
+                                <a
+                                    class="danger-link"
+                                    href="{% url 'courses:assignment_delete' assignment.pk %}"
+                                >
+                                    Удалить задание
+                                </a>
+                            </div>
+                        </section>
+                    {% empty %}
+                        <p class="muted">Заданий пока нет.</p>
+                    {% endfor %}
+                </div>
+
+                <div class="course-actions">
+                    <a href="{% url 'courses:lesson_edit' lesson.pk %}">
+                        Редактировать
+                    </a>
+
+                    <a
+                        class="danger-link"
+                        href="{% url 'courses:lesson_delete' lesson.pk %}"
+                    >
+                        Удалить
+                    </a>
+                </div>
+            </article>
+        {% empty %}
+            <p class="muted">
+                Уроков пока нет. Добавьте первый учебный материал.
+            </p>
+        {% endfor %}
+    </section>
+{% endblock %}

@@ -1,0 +1,62 @@
+{% extends "courses/base.html" %}
+
+{% block title %}Каталог курсов{% endblock %}
+
+{% block content %}
+    <div class="page-heading">
+        <p class="eyebrow">Дистанционное обучение</p>
+        <h1>Каталог курсов</h1>
+        <p class="muted">
+            Выберите курс и познакомьтесь с программой обучения.
+        </p>
+    </div>
+
+    <form class="search-form" method="get">
+        <label for="course-search">Поиск по названию и описанию</label>
+        <div class="search-controls">
+            <input
+                id="course-search"
+                type="search"
+                name="q"
+                value="{{ query }}"
+                placeholder="Например, Python"
+            >
+            <button class="button" type="submit">Найти</button>
+        </div>
+    </form>
+
+    {% if query %}
+        <p>
+            Результаты поиска: «{{ query }}».
+            <a href="{% url 'courses:course_list' %}">Сбросить поиск</a>
+        </p>
+    {% endif %}
+
+    <div class="course-grid">
+        {% for course in courses %}
+            <article class="card">
+                <p class="muted">Уроков: {{ course.lesson_count }}</p>
+                <h2>{{ course.title }}</h2>
+                <p>{{ course.description|truncatewords:25 }}</p>
+                <p class="muted">
+                    Преподаватель:
+                    {{ course.teacher.get_full_name|default:course.teacher.username }}
+                </p>
+                <a
+                    class="button"
+                    href="{% url 'courses:course_detail' course.pk %}"
+                >
+                    Подробнее о курсе
+                </a>
+            </article>
+        {% empty %}
+            <p class="empty-state">
+                {% if query %}
+                    По вашему запросу курсы не найдены.
+                {% else %}
+                    Опубликованных курсов пока нет.
+                {% endif %}
+            </p>
+        {% endfor %}
+    </div>
+{% endblock %}

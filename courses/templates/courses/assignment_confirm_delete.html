@@ -1,0 +1,32 @@
+{% extends "courses/base.html" %}
+
+{% block title %}Удаление задания — Платформа курсов{% endblock %}
+
+{% block content %}
+    <section class="surface">
+        <h1>Удаление задания</h1>
+
+        <p>
+            Удалить задание
+            <strong>«{{ assignment.title }}»</strong>
+            из урока «{{ assignment.lesson.title }}»?
+        </p>
+
+        <p>Отменить удаление будет невозможно.</p>
+
+        <form method="post">
+            {% csrf_token %}
+
+            <div class="form-actions">
+                <button class="button button-danger" type="submit">
+                    Удалить задание
+                </button>
+                <a
+                    href="{% url 'courses:course_manage' assignment.lesson.course_id %}"
+                >
+                    Отмена
+                </a>
+            </div>
+        </form>
+    </section>
+{% endblock %}

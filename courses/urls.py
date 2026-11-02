@@ -1,0 +1,89 @@
+from django.urls import path
+
+from . import views
+
+app_name = "courses"
+
+urlpatterns = [
+    path("", views.course_list, name="course_list"),
+    path(
+        "courses/<int:pk>/",
+        views.course_detail,
+        name="course_detail",
+    ),
+    path(
+        "courses/<int:pk>/enroll/",
+        views.enroll_course,
+        name="enroll_course",
+    ),
+    path(
+        "lessons/<int:pk>/",
+        views.lesson_detail,
+        name="lesson_detail",
+    ),
+    path(
+        "courses/create/",
+        views.course_create,
+        name="course_create",
+    ),
+    path(
+        "courses/<int:pk>/edit/",
+        views.course_edit,
+        name="course_edit",
+    ),
+    path(
+        "courses/<int:pk>/delete/",
+        views.course_delete,
+        name="course_delete",
+    ),
+    path(
+        "courses/<int:pk>/manage/",
+        views.course_manage,
+        name="course_manage",
+    ),
+    path(
+        "courses/<int:course_pk>/lessons/create/",
+        views.lesson_create,
+        name="lesson_create",
+    ),
+    path(
+        "lessons/<int:pk>/edit/",
+        views.lesson_edit,
+        name="lesson_edit",
+    ),
+    path(
+        "lessons/<int:pk>/delete/",
+        views.lesson_delete,
+        name="lesson_delete",
+    ),
+    path(
+        "lessons/<int:lesson_pk>/assignments/create/",
+        views.assignment_create,
+        name="assignment_create",
+    ),
+    path(
+        "assignments/<int:pk>/edit/",
+        views.assignment_edit,
+        name="assignment_edit",
+    ),
+    path(
+        "assignments/<int:pk>/delete/",
+        views.assignment_delete,
+        name="assignment_delete",
+    ),
+    path(
+        "assignments/<int:pk>/answer/",
+        views.assignment_answer,
+        name="assignment_answer",
+    ),
+    path(
+        "assignments/<int:pk>/submissions/",
+        views.assignment_submissions,
+        name="assignment_submissions",
+    ),
+    path(
+        "submissions/<int:pk>/review/",
+        views.submission_review,
+        name="submission_review",
+    ),
+]

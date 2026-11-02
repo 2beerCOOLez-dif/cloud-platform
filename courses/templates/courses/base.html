@@ -1,0 +1,57 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Платформа курсов{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'courses/style.css' %}">
+</head>
+<body>
+    <header class="site-header">
+        <div class="container header-content">
+            <a class="brand" href="{% url 'courses:course_list' %}">
+                Платформа курсов
+            </a>
+            <nav class="site-nav" aria-label="Основная навигация">
+                <a href="{% url 'courses:course_list' %}">Каталог</a>
+
+                {% if user.is_authenticated %}
+                <a href="{% url 'accounts:dashboard' %}">Личный кабинет</a>
+
+                <span class="muted">{{ user.username }}</span>
+
+                <form
+                    class="logout-form"
+                    method="post"
+                    action="{% url 'accounts:logout' %}"
+                >
+                {% csrf_token %}
+                <button class="logout-button" type="submit">
+                    Выйти
+                </button>
+                </form>
+                {% else %}
+                <a href="{% url 'accounts:login' %}">Войти</a>
+                {% endif %}
+            </nav>
+        </div>
+    </header>
+
+    <main class="container main-content">
+    {% if messages %}
+        <div class="notifications" aria-live="polite">
+            {% for message in messages %}
+                <p class="notification">{{ message }}</p>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    {% block content %}{% endblock %}
+    </main>
+
+    <footer class="container site-footer">
+        Платформа дистанционного обучения
+    </footer>
+</body>
+</html>

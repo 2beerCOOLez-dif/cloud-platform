@@ -1,0 +1,52 @@
+{% extends "courses/base.html" %}
+
+{% block title %}{{ lesson.title }} — Платформа курсов{% endblock %}
+
+{% block content %}
+    <a
+        class="back-link"
+        href="{% url 'courses:course_detail' lesson.course.pk %}"
+    >
+        Вернуться к курсу «{{ lesson.course.title }}»
+    </a>
+
+    <article class="surface">
+        <p class="eyebrow">Учебный материал</p>
+        <h1>{{ lesson.title }}</h1>
+        {% if video %}
+            {% include "courses/includes/video_player.html" %}
+        {% endif %}
+        <div class="lesson-content">
+            {{ lesson.content|linebreaks }}
+        </div>
+
+        <section class="assignment-list">
+            <h2>Задания</h2>
+
+            {% for assignment in lesson.assignments.all %}
+                <article class="assignment-card">
+                    <h3>{{ assignment.title }}</h3>
+
+                    <div>
+                        {{ assignment.description|linebreaks }}
+                    </div>
+
+                    {% if user.role == "student" and not user.is_superuser %}
+                        <a
+                            class="button"
+                            href="{% url 'courses:assignment_answer' assignment.pk %}"
+                        >
+                            Мой ответ и оценка
+                        </a>
+                    {% elif user.role == "teacher" and lesson.course.teacher_id == user.pk %}
+                        <a href="{% url 'courses:assignment_submissions' assignment.pk %}">
+                            Ответы студентов
+                        </a>
+                    {% endif %}
+                </article>
+            {% empty %}
+                <p class="muted">В этом уроке пока нет заданий.</p>
+            {% endfor %}
+        </section>
+    </article>
+{% endblock %}

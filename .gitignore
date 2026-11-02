@@ -1,0 +1,9 @@
+.venv/
+.idea/
+__pycache__/
+*.py[cod]
+.env
+db.sqlite3
+backups/
+staticfiles/
+*.log

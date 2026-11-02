@@ -1,0 +1,57 @@
+{% load static %}
+
+<section class="webinar">
+    <h2>Вебинар</h2>
+
+    <div class="webinar-frame">
+        {% if video.provider == "youtube" %}
+            <div
+                id="webinar-youtube"
+                data-video-id="{{ video.video_id }}"
+            ></div>
+
+        {% elif video.provider == "rutube" %}
+            <iframe
+                id="webinar-rutube"
+                data-src="{{ video.embed_url }}"
+                title="Вебинар к уроку"
+                allow="fullscreen; picture-in-picture; encrypted-media"
+                allowfullscreen
+                referrerpolicy="strict-origin-when-cross-origin"
+            ></iframe>
+
+        {% elif video.provider == "vimeo" %}
+            <iframe
+                src="{{ video.embed_url }}"
+                title="Вебинар к уроку"
+                allow="fullscreen; picture-in-picture; encrypted-media"
+                allowfullscreen
+                referrerpolicy="strict-origin-when-cross-origin"
+            ></iframe>
+        {% endif %}
+    </div>
+
+    <p class="muted">
+        Нажмите Play для просмотра.
+        Звук первоначально выключен — включите его в плеере.
+    </p>
+
+    <p id="webinar-status" role="status"></p>
+
+    <a
+        href="{{ lesson.video_url }}"
+        target="_blank"
+        rel="noopener noreferrer"
+    >
+        Открыть видео на видеоплощадке
+    </a>
+
+    <noscript>
+        <p>
+            Для работы встроенного плеера включите JavaScript
+            или откройте видео по ссылке выше.
+        </p>
+    </noscript>
+</section>
+
+<script src="{% static 'courses/webinar.js' %}" defer></script>

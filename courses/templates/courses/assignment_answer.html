@@ -1,0 +1,65 @@
+{% extends "courses/base.html" %}
+
+{% block title %}Ответ на задание — Платформа курсов{% endblock %}
+
+{% block content %}
+    <a
+        class="back-link"
+        href="{% url 'courses:lesson_detail' assignment.lesson_id %}"
+    >
+        Вернуться к уроку
+    </a>
+
+    <section class="surface">
+        <h1>{{ assignment.title }}</h1>
+
+        <h2>Условие</h2>
+        {{ assignment.description|linebreaks }}
+
+        {% if submission %}
+            <h2>Ваш ответ</h2>
+            {{ submission.answer|linebreaks }}
+
+            <p class="muted">
+                Отправлен: {{ submission.submitted_at|date:"d.m.Y H:i" }}
+            </p>
+
+            {% if submission.grade is not None %}
+                <h2>Результат проверки</h2>
+                <p>
+                    <strong>Оценка: {{ submission.grade }} / 100</strong>
+                </p>
+
+                {% if submission.teacher_comment %}
+                    <h3>Комментарий преподавателя</h3>
+                    {{ submission.teacher_comment|linebreaks }}
+                {% endif %}
+
+                <p class="muted">
+                    Проверен: {{ submission.reviewed_at|date:"d.m.Y H:i" }}
+                </p>
+            {% else %}
+                <p class="notification">
+                    Ответ отправлен и ожидает проверки.
+                </p>
+            {% endif %}
+        {% else %}
+            <h2>Ваш ответ</h2>
+
+            <form class="platform-form" method="post">
+                {% csrf_token %}
+
+                {{ form.as_p }}
+
+                <p class="muted">
+                    После отправки изменить ответ нельзя.
+                    Проверьте текст перед отправкой.
+                </p>
+
+                <button class="button" type="submit">
+                    Отправить ответ
+                </button>
+            </form>
+        {% endif %}
+    </section>
+{% endblock %}

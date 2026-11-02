@@ -1,0 +1,69 @@
+{% extends "courses/base.html" %}
+
+{% block title %}{{ course.title }} — Платформа курсов{% endblock %}
+
+{% block content %}
+    <a class="back-link" href="{% url 'courses:course_list' %}">
+        Вернуться в каталог
+    </a>
+
+    <article class="surface">
+        <p class="eyebrow">Образовательный курс</p>
+        <h1>{{ course.title }}</h1>
+
+        <p class="muted">
+            Преподаватель:
+            {{ course.teacher.get_full_name|default:course.teacher.username }}
+        </p>
+
+        <h2>О курсе</h2>
+        <div class="course-description">
+            {{ course.description|linebreaks }}
+        </div>
+
+        <div class="course-access">
+            {% if can_view_lessons %}
+                <p>Вам доступны материалы курса.</p>
+            {% elif can_enroll %}
+                <form
+                    method="post"
+                    action="{% url 'courses:enroll_course' course.pk %}"
+                >
+                    {% csrf_token %}
+                    <button class="button" type="submit">
+                        Записаться на курс
+                    </button>
+                </form>
+            {% elif not user.is_authenticated %}
+                <p>Войдите как студент, чтобы записаться на курс.</p>
+                <a
+                    class="button"
+                    href="{% url 'accounts:login' %}?next={{ request.path|urlencode }}"
+                >
+                    Войти
+                </a>
+            {% else %}
+                <p class="muted">
+                    Материалы доступны студентам курса и его преподавателю.
+                </p>
+            {% endif %}
+        </div>
+
+        <h2>Программа обучения</h2>
+        <ol class="lesson-list">
+            {% for lesson in course.lessons.all %}
+                <li>
+                    {% if can_view_lessons %}
+                        <a href="{% url 'courses:lesson_detail' lesson.pk %}">
+                            {{ lesson.title }}
+                        </a>
+                    {% else %}
+                        {{ lesson.title }}
+                    {% endif %}
+                </li>
+            {% empty %}
+                <li>Программа курса пока не заполнена.</li>
+            {% endfor %}
+        </ol>
+    </article>
+{% endblock %}
