@@ -1,0 +1,12 @@
+.git
+.venv
+.idea
+.env
+.env.*
+!.env.example
+__pycache__
+*.py[cod]
+*.log
+db.sqlite3
+backups
+staticfiles
