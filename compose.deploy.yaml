@@ -1,0 +1,3 @@
+services:
+  web:
+    image: 2beercoolez1/cloud-platform:${APP_VERSION:-latest}
