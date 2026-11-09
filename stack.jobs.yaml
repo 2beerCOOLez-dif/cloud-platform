@@ -1,0 +1,117 @@
+version: "3.8"
+
+services:
+  db:
+    image: postgres:17
+    env_file:
+      - .env
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - backend
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \"$${POSTGRES_USER}\" -d \"$${POSTGRES_DB}\""]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+      start_period: 20s
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.hostname == swarm-manager
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+
+  web:
+    image: 2beercoolez1/cloud-platform:latest
+    env_file:
+      - .env
+    environment:
+      DB_HOST: cloud_platform_db
+      DB_PORT: "5432"
+      DJANGO_DEBUG: "False"
+    # Swarm migrate and collectstatic jobs prepare the application before web starts.
+    entrypoint: ["gunicorn"]
+    command:
+      - config.wsgi:application
+      - --bind
+      - 0.0.0.0:8000
+      - --workers
+      - "2"
+      - --access-logfile
+      - "-"
+      - --error-logfile
+      - "-"
+    networks:
+      - backend
+      - frontend
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/', timeout=3).close()"
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 30s
+    deploy:
+      replicas: ${WEB_REPLICAS:-1}
+      placement:
+        constraints:
+          - node.hostname == swarm-worker
+      update_config:
+        parallelism: 1
+        order: stop-first
+        failure_action: rollback
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+
+  nginx:
+    image: nginx:stable-alpine
+    configs:
+      - source: nginx_jobs_v1
+        target: /etc/nginx/conf.d/default.conf
+    ports:
+      - target: 80
+        published: 8081
+        protocol: tcp
+        mode: ingress
+    volumes:
+      - static_data:/var/www/static:ro
+    networks:
+      - frontend
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1/healthz"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 10s
+    deploy:
+      replicas: ${NGINX_REPLICAS:-1}
+      placement:
+        constraints:
+          - node.hostname == swarm-manager
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+
+configs:
+  nginx_jobs_v1:
+    file: ./nginx/swarm-jobs.conf
+
+volumes:
+  postgres_data:
+  static_data:
+
+networks:
+  frontend:
+    driver: overlay
+    attachable: true
+  backend:
+    driver: overlay
+    attachable: true
+    internal: true

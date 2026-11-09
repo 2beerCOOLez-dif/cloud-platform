@@ -1,300 +1,126 @@
 # Платформа управления дистанционными образовательными курсами
 
-Учебный проект по теме «Настройка и администрирование облачной платформы для управления дистанционными образовательными курсами».
+Учебное приложение на Django: преподаватели создают курсы, уроки и задания, студенты записываются на обучение, отправляют ответы и просматривают оценки. Администратор управляет пользователями и ролями через панель Django.
 
-Клиент-серверное приложение для публикации курсов, просмотра учебных материалов и вебинаров, отправки ответов на задания и проверки работ преподавателем.
+[GitHub](https://github.com/2beerCOOLez-dif/cloud-platform) · [Docker Hub](https://hub.docker.com/r/2beercoolez1/cloud-platform) · [GitHub Actions](https://github.com/2beerCOOLez-dif/cloud-platform/actions)
 
-- [Исходный код](https://github.com/2beerCOOLez-dif/cloud-platform)
-- [Образ приложения в Docker Hub](https://hub.docker.com/r/2beercoolez1/cloud-platform)
-- [Автоматические проверки и публикация](https://github.com/2beerCOOLez-dif/cloud-platform/actions)
+## Возможности и технологии
 
-## Возможности
+- Курсы, уроки, текстовые задания и видео YouTube, Rutube и Vimeo.
+- Один ответ студента на задание, оценка от 0 до 100 и комментарий преподавателя.
+- Проверка прав доступа: преподаватель управляет своими курсами, студент видит доступные ему материалы и свои ответы.
+- Пользователей создаёт администратор; публичной регистрации нет.
 
-| Роль | Возможности |
-|---|---|
-| Студент | Поиск опубликованных курсов, запись на обучение, просмотр уроков и видео, отправка текстового ответа, просмотр оценки и комментария |
-| Преподаватель | Управление своими курсами, уроками и заданиями, просмотр ответов студентов, выставление и изменение оценок |
-| Администратор | Управление пользователями, ролями и данными через административную панель Django |
+Технологии: Python 3.12, Django, Gunicorn, PostgreSQL 17, Nginx, Docker Compose и Docker Swarm. GitHub Actions проверяет код, собирает образ и публикует его в Docker Hub. Развёртывание запускает администратор.
 
-Пользователей создаёт администратор. Публичная регистрация не реализована. На одно задание студент отправляет один ответ; после отправки изменить его через сайт нельзя. Оценка выставляется по шкале от 0 до 100.
+## Подготовка
 
-Материалы опубликованного курса доступны записанным студентам, преподавателю этого курса и администратору. Преподаватель управляет материалами своих черновиков через личный кабинет.
+Для Compose нужны Git и Docker с Compose v2. Для сценария Swarm дополнительно нужен Python 3.12; сторонние Python-пакеты для него не требуются. В Windows Docker Desktop должен работать с Linux-контейнерами. Команды ниже выполняются в CMD из корня проекта.
 
-К уроку можно прикрепить ссылку на YouTube, Rutube или Vimeo. Встроенный плеер загружается без автоматического воспроизведения, с первоначально выключенным звуком. Для просмотра необходимы доступность видеоплощадки и разрешение автора на встраивание.
-
-## Технологии и устройство
-
-| Компонент | Технологии и назначение |
-|---|---|
-| Интерфейс | HTML, CSS, JavaScript и шаблоны Django |
-| Приложение | Python 3.12, Django 5.2, Gunicorn 26 |
-| Данные | PostgreSQL 17 |
-| Веб-сервер | Nginx |
-| Развёртывание | Docker и Docker Compose |
-| Проверки и доставка | GitHub Actions и Docker Hub |
-
-Compose запускает три сервиса:
-
-- `nginx` принимает запросы браузера на локальном порту `8081` и выдаёт статические файлы.
-- `web` запускает Django через Gunicorn на внутреннем порту `8000`.
-- `db` хранит данные в PostgreSQL на внутреннем порту `5432`.
-
-Приложение обращается к PostgreSQL по имени `db`. Сеть `backend` связывает приложение с базой; сеть `frontend` связывает Nginx с приложением.
-
-Том `postgres_data` сохраняет базу между пересозданиями контейнеров. Том `static_data` содержит собранные CSS и JavaScript. Том с данными не заменяет резервную копию.
-
-## Запуск из Docker Hub
-
-Команды ниже предназначены для PowerShell. Выполняйте их из корня репозитория. Для запуска контейнеров нужны Git, Docker и Docker Compose v2; устанавливать Python на компьютере не требуется. В Windows Docker Desktop должен работать в режиме Linux-контейнеров.
-
-### Первоначальная подготовка
-
-Клонируйте репозиторий:
-
-~~~powershell
+```cmd
 git clone https://github.com/2beerCOOLez-dif/cloud-platform.git
 cd cloud-platform
-~~~
+copy .env.example .env
+```
 
-В новом каталоге создайте настройки из образца:
+Если проект и `.env` уже существуют, используйте их. В `.env` задайте свои `POSTGRES_PASSWORD` и `DJANGO_SECRET_KEY`, оставьте `DJANGO_DEBUG=False` и разрешённые хосты `localhost,127.0.0.1`. Файл с секретами не добавляйте в Git.
 
-~~~powershell
-Copy-Item .env.example .env
-~~~
+## Запуск через Docker Compose
 
-Если `.env` уже существует, сохраните его настройки вместо повторного копирования образца.
-
-Откройте `.env` и замените значения `POSTGRES_PASSWORD` и `DJANGO_SECRET_KEY`. Случайное значение секретного ключа можно получить через Docker:
-
-~~~powershell
-docker run --rm python:3.12-slim python -c "import secrets; print(secrets.token_urlsafe(50))"
-~~~
-
-| Переменная | Назначение |
-|---|---|
-| `POSTGRES_DB` | Имя базы; в примере `cloud_platform` |
-| `POSTGRES_USER` | Пользователь PostgreSQL; в примере `cloud_user` |
-| `POSTGRES_PASSWORD` | Пароль PostgreSQL |
-| `DJANGO_SECRET_KEY` | Секретный ключ Django |
-| `DJANGO_DEBUG` | В контейнерном запуске `False` |
-| `DJANGO_ALLOWED_HOSTS` | Разрешённые имена хостов; по умолчанию `localhost,127.0.0.1` |
-| `DB_HOST`, `DB_PORT` | Параметры запуска Django с компьютера; внутри контейнера переопределяются на `db` и `5432` |
-| `APP_VERSION` | Необязательный тег образа; по умолчанию `latest` |
-
-Файл `.env` и папка `backups/` исключены из Git. Шаблон `.env.example` содержит только примеры настроек.
-
-### Запуск одной командой
-
-После подготовки файлов и настроек:
-
-~~~powershell
+```cmd
 docker compose -f compose.yaml -f compose.deploy.yaml up -d --no-build --pull always --wait --wait-timeout 180
-~~~
-
-Команда скачивает готовые образы и запускает сервисы без локальной сборки приложения. При старте `web` автоматически применяются миграции и выполняется `collectstatic`.
-
-Проверьте состояние:
-
-~~~powershell
 docker compose -f compose.yaml -f compose.deploy.yaml ps
-~~~
+```
 
-Все три сервиса должны иметь состояние `healthy`.
+Запускаются три сервиса: `db` — PostgreSQL, `web` — Django через Gunicorn, `nginx` — приём HTTP-запросов и выдача статики. При запуске `web` автоматически выполняются миграции и сбор статических файлов. Ожидаемое состояние всех сервисов — `healthy`.
 
-- Сайт: http://localhost:8081/
-- Административная панель: http://localhost:8081/admin/
-- Вход пользователей: http://localhost:8081/accounts/login/
+Сайт: [http://localhost:8081/](http://localhost:8081/). Административная панель: [http://localhost:8081/admin/](http://localhost:8081/admin/).
 
-### Первый администратор и пользователи
+На новой базе создайте администратора:
 
-На новой пустой базе создайте администратора:
-
-~~~powershell
+```cmd
 docker compose -f compose.yaml -f compose.deploy.yaml exec web python manage.py createsuperuser
-~~~
+```
 
-В административной панели создайте преподавателей и студентов и назначьте им соответствующие роли. Обычным преподавателям и студентам административные флаги `is_staff` и `is_superuser` не требуются.
+Для локальной сборки изменённого кода используйте `docker compose up -d --build --wait`. Это другой способ запуска того же Compose-проекта, а не отдельная платформа.
 
-Преподаватель создаёт курс, добавляет уроки и задания и публикует курс. Студент записывается через каталог и получает доступ к материалам. Ответы проверяются преподавателем из страницы управления курсом.
+## Запуск через Docker Swarm
 
-## Управление и обновление
+Используется подготовленный двухузловой кластер Docker-in-Docker: контейнеры `cloud-swarm-manager` и `cloud-swarm-worker`, внутри которых работают узлы `swarm-manager` и `swarm-worker`. Оба узла должны быть `Ready` и `Active`, управляющий — `Leader`.
 
-Остановить сервисы с сохранением данных:
+```cmd
+docker exec cloud-swarm-manager docker node ls
+python docker\deploy_swarm_jobs.py --copy-from-compose
+```
 
-~~~powershell
-docker compose -f compose.yaml -f compose.deploy.yaml stop
-~~~
+Флаг `--copy-from-compose` переносит пользователей и учебные материалы из работающей Compose-платформы в пустую базу Swarm. Исходная база не изменяется, архив сохраняется в `backups`. Если база Swarm уже содержит таблицы, перенос пропускается. Для запуска без переноса уберите этот флаг.
 
-Запустить снова, используя имеющиеся образы:
+Сценарий использует `stack.jobs.yaml` и создаёт пять контейнеров с разными задачами:
 
-~~~powershell
-docker compose -f compose.yaml -f compose.deploy.yaml up -d --no-build --wait
-~~~
+| Сервис | Узел | Назначение | После запуска |
+|---|---|---|---|
+| `db` | manager | PostgreSQL | Работает |
+| `migrate` | manager | Обновление таблиц базы | Завершён, код 0 |
+| `collectstatic` | manager | Сбор статических файлов | Завершён, код 0 |
+| `web` | worker | Django через Gunicorn | Работает |
+| `nginx` | manager | HTTP и выдача статики | Работает |
 
-Посмотреть последние сообщения журналов:
+Сначала запускается база, затем последовательно выполняются `migrate` и `collectstatic`, после них — `web` и Nginx. Два задания работают в режиме `replicated-job` и штатно завершаются. При ошибке подготовки приложение не запускается. Все три сервиса Django используют один образ, но разные команды запуска.
 
-~~~powershell
-docker compose -f compose.yaml -f compose.deploy.yaml logs --tail 80 web nginx db
-~~~
+Сети `frontend` и `backend` с драйвером `overlay` связывают сервисы между узлами. Данные базы и статика сохраняются в томах `postgres_data` и `static_data`. Тома и два внешних контейнера узлов не входят в пять контейнеров приложения.
 
-Обновить файлы проекта и скачать опубликованные образы:
+Сайт: [http://localhost:8082/](http://localhost:8082/). Используется заранее настроенный проброс порта управляющего узла `8082:8081`. После переноса работают прежние пользователи.
 
-~~~powershell
-git pull --ff-only
-docker compose -f compose.yaml -f compose.deploy.yaml up -d --no-build --pull always --wait --wait-timeout 180
-~~~
+Проверка сервисов, заданий и размещения приложения:
 
-Перед обновлением сохраните локальные изменения и создайте резервную копию базы. Для выбора конкретной версии укажите в `.env` значение `APP_VERSION`, равное тегу коммита из Docker Hub. Смена тега приложения сама по себе не откатывает миграции и данные.
+```cmd
+docker exec cloud-swarm-manager docker stack services cloud_platform
+docker exec cloud-swarm-manager docker service ps cloud_platform_migrate --no-trunc
+docker exec cloud-swarm-manager docker service ps cloud_platform_collectstatic --no-trunc
+docker exec cloud-swarm-manager docker service ps cloud_platform_web --no-trunc
+```
 
-Не используйте `docker compose down -v` для обычной остановки: параметр `-v` удаляет тома, включая базу данных.
+Для `db`, `web`, `nginx` ожидается `1/1`; для двух заданий — `Complete` и успешное завершение. Они не должны постоянно работать. `web` должен размещаться на `swarm-worker`.
 
-## Локальная сборка
+Повторный запуск сценария останавливает `web` и Nginx, повторяет задачи подготовки для текущего образа и запускает приложение. Данные сохраняются, но возникает перерыв в работе. При изменении настроек Nginx обновите имя `nginx_jobs_v1` в обоих местах `stack.jobs.yaml`: объекты Docker Config неизменяемы.
 
-Для проверки изменений исходного кода:
+## Тестирование и обслуживание
 
-~~~powershell
-docker compose up -d --build --wait --wait-timeout 180
-~~~
+Автоматические тесты и журналы в режиме Compose:
 
-В этом режиме Compose собирает приложение по Dockerfile. После изменения Python, шаблонов, CSS или JavaScript повторите команду сборки. Одновременный запуск двух режимов в одной папке не создаёт две независимые платформы: они используют один Compose-проект и его тома.
-
-## Проверки
-
-Запуск автоматических тестов внутри опубликованного образа:
-
-~~~powershell
+```cmd
 docker compose -f compose.yaml -f compose.deploy.yaml exec web python manage.py test courses -v 2
-~~~
+docker compose -f compose.yaml -f compose.deploy.yaml logs --tail 40 web nginx db
+```
 
-В проекте 20 тестов. Проверяются вход и выход, публикация курсов, доступ к материалам, права владельца курса, запись на обучение, отправка и конфиденциальность ответов, выставление оценок, CSRF-защита и разбор видеоссылок.
+Тесты проверяют основные функции, права доступа и обработку видеоссылок. Django создаёт отдельную тестовую базу. Внешние видео и отображение страниц проверяются вручную в браузере.
 
-Django создаёт отдельную тестовую базу и удаляет её после выполнения. Учётная запись тестовой базы должна иметь право создавать базы данных; пользователь, созданный текущим образом PostgreSQL через `POSTGRES_USER`, имеет необходимые права.
+Журналы Swarm доступны через `docker exec cloud-swarm-manager docker service logs --tail 40 cloud_platform_web`; вместо `web` можно указать `db`, `nginx`, `migrate` или `collectstatic`.
 
-Проверка конфигурации Nginx:
+Перед обновлением создайте резервную копию. Пример для базы Compose с именами `cloud_user` и `cloud_platform`:
 
-~~~powershell
-docker compose -f compose.yaml -f compose.deploy.yaml exec nginx nginx -t
-~~~
-
-Воспроизведение внешних видео и внешний вид страниц проверяются в браузере: Django Test Client не исполняет JavaScript.
-
-## Резервное копирование и проверка восстановления
-
-Примеры используют пользователя `cloud_user` и базу `cloud_platform`. Если значения изменены в `.env`, подставьте свои имена.
-
-Все команды выполняются из прежней папки проекта. Короткие команды `docker compose exec` и `docker compose cp` обращаются к сервисам этого же Compose-проекта.
-
-### Создание копии
-
-~~~powershell
-New-Item -ItemType Directory -Force backups
+```cmd
+if not exist backups mkdir backups
 docker compose exec db pg_dump -U cloud_user -d cloud_platform -Fc -f /tmp/cloud_platform_backup.dump
 docker compose cp db:/tmp/cloud_platform_backup.dump ./backups/cloud_platform_backup.dump
-Get-Item .\backups\cloud_platform_backup.dump
-~~~
+```
 
-Архив создаётся внутри контейнера и копируется как файл: двоичное содержимое не проходит через текстовое перенаправление PowerShell. Храните копии за пределами тома PostgreSQL; для нескольких дат используйте разные имена файлов.
+Для проверки архив восстанавливают через `pg_restore` в отдельную пустую базу и сравнивают данные. Том PostgreSQL не заменяет резервную копию. Обычная остановка Compose выполняется командой `docker compose stop`; параметр `down -v` удаляет тома с данными.
 
-`pg_dump` сохраняет выбранную базу, но не глобальные роли всего PostgreSQL. В приведённом сценарии роль `cloud_user` уже существует благодаря инициализации контейнера.
+Для обновления Compose скачайте образ командой `docker compose -f compose.yaml -f compose.deploy.yaml pull web`, затем повторите команду запуска. Для Swarm используйте сценарий развёртывания.
 
-### Восстановление в отдельную базу
+## Основные файлы и автоматизация
 
-~~~powershell
-docker compose cp ./backups/cloud_platform_backup.dump db:/tmp/restore_check.dump
-docker compose exec db createdb -U cloud_user -T template0 cloud_platform_restore_check
-docker compose exec db pg_restore -U cloud_user -d cloud_platform_restore_check --no-owner --no-privileges --exit-on-error --single-transaction /tmp/restore_check.dump
-~~~
-
-Проверочная база должна быть новой и пустой. Восстановление направлено в `cloud_platform_restore_check`; рабочая база `cloud_platform` не перезаписывается.
-
-### Сравнение восстановленных данных
-
-Чтобы сравнение соответствовало состоянию копии, от её создания до конца проверки не изменяйте учебные данные и не выполняйте новые входы пользователей.
-
-В PowerShell передайте код через стандартный ввод:
-
-~~~powershell
-@'
-from copy import deepcopy
-from django.contrib.auth import get_user_model
-from django.db import connections
-from courses.models import Course, Lesson, Enrollment, Assignment, Submission
-
-config = deepcopy(connections["default"].settings_dict)
-config["NAME"] = "cloud_platform_restore_check"
-connections.databases["restore_check"] = config
-
-models = [
-    get_user_model(),
-    Course,
-    Lesson,
-    Enrollment,
-    Assignment,
-    Submission,
-]
-
-try:
-    for model in models:
-        source = list(model.objects.using("default").order_by("pk").values())
-        restored = list(model.objects.using("restore_check").order_by("pk").values())
-        matches = source == restored
-        print(f"{model._meta.label}: count={len(source)}, match={matches}")
-        if not matches:
-            raise RuntimeError(f"Data mismatch: {model._meta.label}")
-finally:
-    connections["restore_check"].close()
-
-print("Restore verification passed.")
-'@ | docker compose exec -T web python manage.py shell
-~~~
-
-У всех шести моделей должно быть `match=True`, затем — `Restore verification passed.`. Сравниваются значения полей, включая тексты ответов, оценки и видеоссылки; содержимое записей не выводится на экран.
-
-После успешной проверки удалите только проверочную базу:
-
-~~~powershell
-docker compose exec db dropdb -U cloud_user cloud_platform_restore_check
-~~~
-
-Сохранённый архив остаётся в `backups/`.
-
-## Автоматизация GitHub Actions
-
-Файл [.github/workflows/ci.yml](.github/workflows/ci.yml) запускает:
-
-1. Проверку настроек Django и наличия миграций.
-2. Тесты с временной базой PostgreSQL.
-3. После успешных проверок в `main` — сборку и публикацию образа приложения.
-
-В pull request выполняются только проверки. После push в `main` или ручного запуска из `main` публикуются теги `latest` и полный идентификатор коммита.
-
-Настройки репозитория GitHub в разделе **Settings → Secrets and variables → Actions**:
-
-| Тип | Имя | Значение |
-|---|---|---|
-| Variable | `DOCKERHUB_USERNAME` | Docker ID владельца репозитория образов |
-| Secret | `DOCKERHUB_TOKEN` | Токен Docker Hub с правом публикации |
-
-Текущий репозиторий образов: `2beercoolez1/cloud-platform`. Workflow проверяет код и доставляет образ; запуск на целевой машине выполняется командой Compose.
-
-## Структура репозитория
-
-| Путь | Назначение |
+| Файл или каталог | Назначение |
 |---|---|
-| `accounts/` | Пользователи, роли, вход и личный кабинет |
-| `courses/` | Курсы, уроки, задания, ответы, оценки и вебинары |
-| `config/` | Настройки Django и корневые маршруты |
-| `docker/entrypoint.py` | Применение миграций, сбор статики и запуск сервера |
-| `nginx/default.conf` | Обратное проксирование и выдача статики |
-| `Dockerfile` | Сборка образа приложения |
-| `compose.yaml` | Сервисы, сети, тома и локальная сборка |
-| `compose.deploy.yaml` | Выбор опубликованного образа |
-| `.env.example` | Образец настроек без настоящих секретов |
-| `courses/tests.py` | Автоматические тесты |
+| `accounts/`, `courses/`, `config/` | Пользователи, учебные функции и настройки Django |
+| `Dockerfile`, `docker/entrypoint.py` | Сборка образа и подготовка приложения при запуске Compose |
+| `compose.yaml`, `compose.deploy.yaml` | Локальная сборка и запуск опубликованного образа |
+| `compose.cluster.yaml`, `stack.jobs.yaml` | Настройки узлов и сервисов Swarm |
+| `docker/deploy_swarm_jobs.py` | Порядок развёртывания и одноразовые задачи Swarm |
+| `nginx/default.conf`, `nginx/swarm-jobs.conf` | Настройки Nginx для двух вариантов запуска |
+| `.github/workflows/ci.yml` | Проверки, сборка и публикация образа |
 
-## Область применения
+Для публикации в GitHub Actions задаются переменная `DOCKERHUB_USERNAME` и секрет `DOCKERHUB_TOKEN`. После успешных проверок в `main` публикуются теги `latest` и идентификатор коммита. При проверке pull request публикация не выполняется.
 
-Текущая конфигурация предназначена для локальной демонстрации и привязана к `127.0.0.1:8081`. Для публичного размещения на сервере отдельно настраиваются внешний доступ, домен, HTTPS и соответствующие параметры Django.
-
-Реализованы переносимый контейнерный запуск и автоматическая доставка образа. Многоузловой кластер и автоматическое развёртывание на облачном сервере в текущую реализацию не входят.
-
+Оба узла Swarm работают на одном компьютере: это учебная демонстрация кластера. База, статика и Nginx закреплены за manager, приложение — за worker. Такая схема не защищает от отказа компьютера и не содержит резервного экземпляра приложения. Для публичного размещения отдельно настраиваются внешний доступ, домен, HTTPS и параметры Django.

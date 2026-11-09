@@ -1,0 +1,74 @@
+name: cloud_platform_cluster
+
+services:
+  manager:
+    image: docker:29.9.3-dind
+    container_name: cloud-swarm-manager
+    hostname: swarm-manager
+    privileged: true
+    restart: unless-stopped
+
+    command:
+      - dockerd
+      - --host=unix:///var/run/docker.sock
+
+    environment:
+      DOCKER_TLS_CERTDIR: ""
+      DOCKER_HOST: unix:///var/run/docker.sock
+
+    ports:
+      - "127.0.0.1:8082:8081"
+
+    volumes:
+      - manager_docker:/var/lib/docker
+
+    networks:
+      cluster:
+        ipv4_address: 172.30.80.10
+
+    healthcheck:
+      test: ["CMD", "docker", "info"]
+      interval: 5s
+      timeout: 5s
+      retries: 24
+      start_period: 20s
+
+  worker:
+    image: docker:29.9.3-dind
+    container_name: cloud-swarm-worker
+    hostname: swarm-worker
+    privileged: true
+    restart: unless-stopped
+
+    command:
+      - dockerd
+      - --host=unix:///var/run/docker.sock
+
+    environment:
+      DOCKER_TLS_CERTDIR: ""
+      DOCKER_HOST: unix:///var/run/docker.sock
+
+    volumes:
+      - worker_docker:/var/lib/docker
+
+    networks:
+      cluster:
+        ipv4_address: 172.30.80.11
+
+    healthcheck:
+      test: ["CMD", "docker", "info"]
+      interval: 5s
+      timeout: 5s
+      retries: 24
+      start_period: 20s
+
+volumes:
+  manager_docker:
+  worker_docker:
+
+networks:
+  cluster:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.30.80.0/24
